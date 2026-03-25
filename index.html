@@ -110,7 +110,11 @@ textarea:focus{border-color:var(--teal)}
 .modal-actions{display:flex;gap:8px;margin-top:1rem;justify-content:flex-end}
 .btn-cancel{padding:8px 16px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg);color:var(--txt2);cursor:pointer;font-size:13px}
 .btn-go{padding:8px 18px;border-radius:99px;border:none;background:var(--teal);color:#fff;cursor:pointer;font-size:13px;font-weight:500}
-.analyzing{text-align:center;padding:2rem 0;color:var(--txt2);font-size:13px}
+.link-menu{position:fixed;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rl);box-shadow:0 4px 20px rgba(0,0,0,0.12);z-index:999;min-width:200px;overflow:hidden}
+.link-menu a{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;color:var(--txt);text-decoration:none;border-bottom:0.5px solid var(--border)}
+.link-menu a:last-child{border-bottom:none}
+.link-menu a:hover{background:var(--bg2)}
+.link-menu-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .spinner{width:28px;height:28px;border:2.5px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .settings-section{margin-bottom:1.25rem}
@@ -363,7 +367,9 @@ async function fetchAndScore() {
   for(const raw of fresh) {
     const result = await scoreWithClaude(raw);
     if(result) {
-      listings.unshift({ ...result, id: Date.now() + Math.random(), addedAt: new Date().toISOString(), tracked: false, source: 'rentcast', sourceName: 'RentCast' });
+      listings.unshift({ ...result, id: Date.now() + Math.random(), addedAt: new Date().toISOString(), tracked: false, source: 'rentcast', sourceName: 'RentCast',
+        listingUrl: raw.listingUrl || raw.url || 'https://www.zillow.com/homes/' + encodeURIComponent((raw.formattedAddress || raw.address || '')) + '_rb/'
+      });
       scored++;
       persist(); updateFilters(); render(); updateStats();
     }
@@ -388,7 +394,7 @@ async function scoreWithClaude(raw) {
     'Description: ' + (raw.description || 'none')
   ].join('\n');
 
-  const prompt = 'You are a Boston rental market expert. Analyze this listing and return ONLY valid JSON (no markdown, no backticks).\n\nLISTING:\n"""\n' + context + '\n"""\n\nBOSTON NEIGHBORHOOD MEDIANS:\n' + JSON.stringify(MEDIANS) + '\n\nReturn this EXACT JSON:\n{\n  "address": "full street address",\n  "neighborhood": "best matching neighborhood from the medians list",\n  "type": "Studio|1BR|2BR|3BR+",\n  "price": <monthly rent as integer or null>,\n  "sqft": <integer or null>,\n  "available": "date string, Now, or TBD",\n  "amenities": ["up to 6 amenities"],\n  "brokerFee": <true|false|null>,\n  "petFriendly": <true|false|null>,\n  "parking": <true|false|null>,\n  "score": <0-100>,\n  "pctBelowMarket": <integer>,\n  "marketRent": <neighborhood median for this unit type>,\n  "dealTags": ["up to 5 short tags"],\n  "aiInsight": "2-3 sentences about this deal.",\n  "listingUrl": null\n}';
+  const prompt = 'You are a Boston rental market expert. Analyze this listing and return ONLY valid JSON (no markdown, no backticks).\n\nLISTING:\n"""\n' + context + '\n"""\n\nBOSTON NEIGHBORHOOD MEDIANS:\n' + JSON.stringify(MEDIANS) + '\n\nReturn this EXACT JSON:\n{\n  "address": "full street address",\n  "neighborhood": "best matching neighborhood from the medians list",\n  "type": "Studio|1BR|2BR|3BR+",\n  "price": <monthly rent as integer or null>,\n  "sqft": <integer or null>,\n  "available": "date string, Now, or TBD",\n  "amenities": ["up to 6 amenities"],\n  "brokerFee": <true|false|null>,\n  "petFriendly": <true|false|null>,\n  "parking": <true|false|null>,\n  "score": <0-100>,\n  "pctBelowMarket": <integer>,\n  "marketRent": <neighborhood median for this unit type>,\n  "dealTags": ["up to 5 short tags"],\n  "aiInsight": "2-3 sentences about this deal.",\n  "listingUrl": null';
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -412,7 +418,29 @@ async function scoreWithClaude(raw) {
   }
 }
 
-function showProgress(title, pct) {
+function showLinkMenu(e, addr) {
+  e.stopPropagation();
+  document.querySelectorAll('.link-menu').forEach(el => el.remove());
+  const enc = encodeURIComponent(addr);
+  const menu = document.createElement('div');
+  menu.className = 'link-menu';
+  menu.innerHTML = [
+    ['🟦', 'Zillow', 'https://www.zillow.com/homes/' + enc + '_rb/'],
+    ['🟠', 'Apartments.com', 'https://www.apartments.com/search/?q=' + enc],
+    ['🔴', 'Redfin', 'https://www.redfin.com/search?q=' + enc],
+    ['🗺️', 'Google Maps', 'https://maps.google.com/?q=' + enc],
+    ['🔍', 'Google Search', 'https://www.google.com/search?q=' + enc + '+apartment+rental'],
+  ].map(([icon, name, url]) =>
+    '<a href="' + url + '" target="_blank"><span class="link-menu-icon">' + icon + '</span>' + name + '</a>'
+  ).join('');
+  document.body.appendChild(menu);
+  const rect = e.target.getBoundingClientRect();
+  menu.style.top = (rect.bottom + 6) + 'px';
+  menu.style.left = Math.min(rect.left, window.innerWidth - 220) + 'px';
+  setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 10);
+}
+
+
   document.getElementById('progressBar').classList.remove('hidden');
   document.getElementById('progressTitle').textContent = title;
   document.getElementById('progressFill').style.width = pct + '%';
@@ -467,9 +495,9 @@ function render() {
     if(l.brokerFee === false) extras.push('<span class="tag deal">No broker fee</span>');
     if(l.petFriendly) extras.push('<span class="tag">Pet friendly</span>');
     if(l.parking) extras.push('<span class="tag">Parking</span>');
-    const addrHtml = l.listingUrl
-      ? '<a href="' + l.listingUrl + '" target="_blank" class="card-addr" style="text-decoration:none;border-bottom:0.5px solid var(--border2)">' + (l.address || 'View listing') + '</a>'
-      : '<span class="card-addr">' + (l.address || 'Unknown') + '</span>';
+    const addr = l.address || 'Unknown';
+    const addrEnc = encodeURIComponent(addr);
+    const addrHtml = '<span class="card-addr addr-link" onclick="showLinkMenu(event,\'' + addr.replace(/'/g,"&#39;") + '\')" style="cursor:pointer;border-bottom:0.5px dashed var(--border2)">' + addr + ' <span style="font-size:10px;opacity:.5">↗</span></span>';
     return '<div class="card ' + cls + '"><div class="score-circle ' + cls + '"><div class="score-num">' + l.score + '</div><div class="score-lbl">SCORE</div></div><div class="card-body"><div class="card-top">' + addrHtml + '<span class="card-hood">' + (l.neighborhood || 'Boston') + '</span></div><div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap"><span class="src-pill">' + (l.sourceName || 'Other') + '</span><span class="card-meta" style="margin:0">' + (l.type || '') + (l.sqft ? ' · ' + l.sqft + ' sqft' : '') + ' · Available ' + (l.available || 'TBD') + '</span></div><div class="price-row"><span class="price">' + (l.price ? '$' + l.price.toLocaleString() + '/mo' : 'Price TBD') + '</span>' + (l.marketRent ? '<span class="price-was">median $' + l.marketRent.toLocaleString() + '</span>' : '') + (saving > 0 ? '<span class="price-save">Save $' + saving.toLocaleString() + '/mo</span>' : '') + (l.pctBelowMarket > 0 ? '<span class="tag deal">' + l.pctBelowMarket + '% below market</span>' : l.pctBelowMarket < 0 ? '<span class="tag warn">' + Math.abs(l.pctBelowMarket) + '% above market</span>' : '') + '</div><div class="tags">' + tags + extras.join('') + '</div>' + (l.aiInsight ? '<div class="card-ai">✦ ' + l.aiInsight + '</div>' : '') + '</div><div class="card-right"><button class="track-btn ' + (l.tracked ? 'on' : '') + '" onclick="toggleTrack(' + l.id + ')">' + (l.tracked ? '★ Saved' : '☆ Save') + '</button><span class="days-ago">' + ago(l.addedAt) + '</span><button class="del-btn" onclick="del(' + l.id + ')" title="Remove">✕</button></div></div>';
   }).join('');
 }
