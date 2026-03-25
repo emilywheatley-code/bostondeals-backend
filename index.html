@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BostonDeals.rent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f7f7f5;--bg3:#f0efe9;
+  --txt:#1a1a1a;--txt2:#6b6b68;--txt3:#9c9c99;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.2);
+  --teal:#1D9E75;--teal-bg:#E1F5EE;--teal-dk:#0F6E56;
+  --coral-bg:#FAECE7;--coral:#993C1D;
+  --blue-bg:#E6F1FB;--blue:#185FA5;
+  --amber-bg:#FAEEDA;--amber:#854F0B;
+  --r:8px;--rl:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--txt);min-height:100vh}
+.hdr{background:var(--bg);border-bottom:0.5px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+.logo{font-size:17px;font-weight:600;letter-spacing:-0.3px}
+.logo span{color:var(--teal)}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hdr-badge{background:var(--teal-bg);color:var(--teal-dk);font-size:11px;padding:3px 9px;border-radius:99px;font-weight:500}
+.icon-btn{background:none;border:0.5px solid var(--border2);border-radius:99px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--txt2);display:flex;align-items:center;gap:5px}
+.icon-btn:hover{border-color:var(--teal);color:var(--teal)}
+.fetch-btn{background:var(--teal);color:#fff;border:none;font-size:13px;padding:7px 14px;border-radius:99px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:6px}
+.fetch-btn:hover{background:var(--teal-dk)}
+.fetch-btn:disabled{opacity:.5;cursor:not-allowed}
+.add-btn{background:none;border:0.5px solid var(--border2);color:var(--txt);font-size:13px;padding:7px 14px;border-radius:99px;cursor:pointer}
+.add-btn:hover{border-color:var(--teal);color:var(--teal)}
+.key-dot{width:7px;height:7px;border-radius:50%;background:#E24B4A;display:inline-block}
+.key-dot.ok{background:var(--teal)}
+.main{max-width:960px;margin:0 auto;padding:1.25rem 1rem}
+.key-banner{background:var(--blue-bg);border:0.5px solid rgba(24,95,165,.2);border-radius:var(--rl);padding:1.25rem 1.5rem;margin-bottom:1.25rem}
+.key-banner.hidden{display:none}
+.key-banner h3{font-size:14px;font-weight:500;color:var(--blue);margin-bottom:6px}
+.key-banner p{font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:10px}
+.key-banner a{color:var(--blue)}
+.key-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.key-field label{font-size:11px;color:var(--txt2);display:block;margin-bottom:4px}
+.key-field input{width:100%;border:0.5px solid rgba(24,95,165,.3);border-radius:var(--r);padding:7px 10px;font-size:12px;color:var(--txt);background:var(--bg);outline:none;font-family:monospace}
+.key-save-btn{margin-top:10px;padding:7px 16px;border-radius:99px;background:var(--blue);color:#fff;border:none;font-size:12px;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.stat{background:var(--bg);border-radius:var(--r);padding:12px 14px;border:0.5px solid var(--border)}
+.stat-lbl{font-size:11px;color:var(--txt2);margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600;color:var(--txt);line-height:1}
+.stat-sub{font-size:11px;color:var(--teal);margin-top:3px}
+.progress-bar{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.progress-bar.hidden{display:none}
+.progress-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.progress-title{font-size:13px;font-weight:500}
+.progress-sub{font-size:12px;color:var(--txt2)}
+.progress-track{height:4px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);border-radius:99px;transition:width .3s}
+.progress-log{font-size:11px;color:var(--txt3);margin-top:8px;line-height:1.6;max-height:60px;overflow-y:auto}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.filter-bar select{font-size:12px;padding:5px 10px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg);color:var(--txt);cursor:pointer;outline:none}
+.chip{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg);color:var(--txt2);cursor:pointer;white-space:nowrap;transition:all .15s}
+.chip:hover{border-color:var(--teal);color:var(--teal)}
+.chip.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.filter-count{font-size:12px;color:var(--txt3);margin-left:auto}
+.alert-bar{background:var(--amber-bg);border:0.5px solid rgba(133,79,11,.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.alert-bar.hidden{display:none}
+.deals{display:flex;flex-direction:column;gap:10px}
+.empty{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:3rem;text-align:center;color:var(--txt2)}
+.empty h3{font-size:16px;font-weight:500;margin-bottom:8px;color:var(--txt)}
+.empty p{font-size:13px;line-height:1.7}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem;display:flex;gap:14px;align-items:flex-start;transition:box-shadow .15s}
+.card:hover{box-shadow:0 2px 12px rgba(0,0,0,0.07)}
+.card.hot{border-left:3px solid var(--teal)}
+.card.warm{border-left:3px solid #EF9F27}
+.card.cold{border-left:3px solid var(--border2)}
+.score-circle{width:54px;height:54px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;font-weight:700}
+.score-circle.hot{background:var(--teal-bg);color:var(--teal-dk)}
+.score-circle.warm{background:var(--amber-bg);color:var(--amber)}
+.score-circle.cold{background:var(--bg2);color:var(--txt2)}
+.score-num{font-size:18px;line-height:1}
+.score-lbl{font-size:9px;font-weight:500;letter-spacing:.3px;opacity:.8}
+.card-body{flex:1;min-width:0}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.card-addr{font-size:15px;font-weight:600;color:var(--txt)}
+.card-hood{font-size:12px;color:var(--txt2);background:var(--bg2);padding:2px 8px;border-radius:99px;white-space:nowrap}
+.src-pill{font-size:10px;padding:2px 7px;border-radius:99px;border:0.5px solid var(--border);color:var(--txt3);white-space:nowrap}
+.card-meta{font-size:12px;color:var(--txt2);margin-bottom:8px}
+.price-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.price{font-size:19px;font-weight:700;color:var(--txt)}
+.price-was{font-size:12px;color:var(--txt3);text-decoration:line-through}
+.price-save{font-size:12px;background:var(--teal-bg);color:var(--teal-dk);padding:2px 8px;border-radius:99px;font-weight:500}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:11px;padding:2px 7px;border-radius:99px;border:0.5px solid var(--border);color:var(--txt2)}
+.tag.deal{background:var(--teal-bg);color:var(--teal-dk);border-color:rgba(29,158,117,.3)}
+.tag.warn{background:var(--coral-bg);color:var(--coral);border-color:rgba(153,60,29,.3)}
+.card-ai{font-size:12px;color:var(--txt2);margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border);line-height:1.5;font-style:italic}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.track-btn{font-size:12px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg);color:var(--txt);cursor:pointer;white-space:nowrap}
+.track-btn:hover{border-color:var(--teal);color:var(--teal)}
+.track-btn.on{background:var(--teal-bg);color:var(--teal-dk);border-color:rgba(29,158,117,.4)}
+.del-btn{font-size:11px;color:var(--txt3);background:none;border:none;cursor:pointer;padding:2px}
+.del-btn:hover{color:#A32D2D}
+.days-ago{font-size:11px;color:var(--txt3)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem}
+.overlay.hidden{display:none}
+.modal{background:var(--bg);border-radius:var(--rl);padding:1.5rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.modal-title{font-size:16px;font-weight:600}
+.close-btn{background:none;border:none;font-size:22px;cursor:pointer;color:var(--txt2);line-height:1}
+textarea{width:100%;border:0.5px solid var(--border2);border-radius:var(--r);padding:10px;font-size:13px;font-family:inherit;resize:vertical;min-height:120px;color:var(--txt);background:var(--bg);outline:none;line-height:1.6}
+textarea:focus{border-color:var(--teal)}
+.modal-actions{display:flex;gap:8px;margin-top:1rem;justify-content:flex-end}
+.btn-cancel{padding:8px 16px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg);color:var(--txt2);cursor:pointer;font-size:13px}
+.btn-go{padding:8px 18px;border-radius:99px;border:none;background:var(--teal);color:#fff;cursor:pointer;font-size:13px;font-weight:500}
+.analyzing{text-align:center;padding:2rem 0;color:var(--txt2);font-size:13px}
+.spinner{width:28px;height:28px;border:2.5px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.settings-section{margin-bottom:1.25rem}
+.settings-section h4{font-size:13px;font-weight:500;margin-bottom:6px}
+.settings-section p{font-size:12px;color:var(--txt2);line-height:1.5;margin-bottom:8px}
+.settings-section input{width:100%;border:0.5px solid var(--border2);border-radius:var(--r);padding:8px 10px;font-size:12px;font-family:monospace;color:var(--txt);background:var(--bg);outline:none;margin-bottom:6px}
+.save-key-btn{padding:7px 16px;border-radius:99px;background:var(--teal);color:#fff;border:none;font-size:13px;cursor:pointer}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.key-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">Boston<span>Deals</span><span style="color:var(--txt3)">.rent</span></div>
+  <div class="hdr-right">
+    <span class="hdr-badge" id="newBadge" style="display:none"></span>
+    <button class="icon-btn" onclick="openSettings()"><span class="key-dot" id="keyDot"></span> Keys</button>
+    <button class="add-btn" onclick="openManual()">+ Manual</button>
+    <button class="fetch-btn" id="fetchBtn" onclick="fetchAndScore()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.62"/></svg>
+      Fetch live listings
+    </button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="alert-bar hidden" id="alertBar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span id="alertText"></span>
+  </div>
+
+  <div class="key-banner" id="keyBanner">
+    <h3>Add your API keys to get started</h3>
+    <p>
+      <strong>Anthropic key</strong> — scores listings with AI. Get one at <a href="https://console.anthropic.com/keys" target="_blank">console.anthropic.com</a><br>
+      <strong>RentCast key</strong> — pulls live Boston listings. Free tier available at <a href="https://rentcast.io/api" target="_blank">rentcast.io/api</a>
+    </p>
+    <div class="key-grid">
+      <div class="key-field"><label>Anthropic API key</label><input type="password" id="bannerAnthropicKey" placeholder="sk-ant-…"/></div>
+      <div class="key-field"><label>RentCast API key</label><input type="password" id="bannerRentcastKey" placeholder="RentCast key…"/></div>
+    </div>
+    <button class="key-save-btn" onclick="saveKeysFromBanner()">Save keys & start</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">Live listings</div><div class="stat-val" id="sTotal">0</div><div class="stat-sub" id="sFetched">0 fetched today</div></div>
+    <div class="stat"><div class="stat-lbl">Avg. deal score</div><div class="stat-val" id="sScore">—</div><div class="stat-sub">out of 100</div></div>
+    <div class="stat"><div class="stat-lbl">Best saving</div><div class="stat-val" id="sBest">—</div><div class="stat-sub">vs market rate</div></div>
+    <div class="stat"><div class="stat-lbl">Avg. below market</div><div class="stat-val" id="sAvgOff">—</div><div class="stat-sub" id="sAvgSub">across all listings</div></div>
+  </div>
+
+  <div class="progress-bar hidden" id="progressBar">
+    <div class="progress-hdr">
+      <div class="progress-title" id="progressTitle">Fetching listings…</div>
+      <div class="progress-sub" id="progressSub"></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-log" id="progressLog"></div>
+  </div>
+
+  <div class="filter-bar">
+    <select id="hoodFilter" onchange="render()"><option value="">All neighborhoods</option></select>
+    <select id="typeFilter" onchange="render()">
+      <option value="">Any size</option><option>Studio</option><option>1BR</option><option>2BR</option><option>3BR+</option>
+    </select>
+    <select id="sortFilter" onchange="render()">
+      <option value="score">Best deal first</option>
+      <option value="price_asc">Price: low → high</option>
+      <option value="price_desc">Price: high → low</option>
+      <option value="newest">Newest first</option>
+    </select>
+    <span class="chip on" id="chipAll" onclick="setChip('all')">All</span>
+    <span class="chip" id="chipTracked" onclick="setChip('tracked')">★ Saved</span>
+    <span class="chip" id="chipHot" onclick="setChip('hot')">🔥 Hot deals</span>
+    <span class="filter-count" id="filterCount"></span>
+  </div>
+
+  <div class="deals" id="dealsList"></div>
+</div>
+
+<div class="overlay hidden" id="manualOverlay">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">Add listing manually</div><button class="close-btn" onclick="closeManual()">×</button></div>
+    <div id="manualBody">
+      <textarea id="manualInput" placeholder="Paste any listing text — Zillow, Craigslist, Apartments.com, anything."></textarea>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeManual()">Cancel</button>
+        <button class="btn-go" onclick="analyzeManual()">Analyze with AI ↗</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="settingsOverlay">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">Settings</div><button class="close-btn" onclick="closeSettings()">×</button></div>
+    <div class="settings-section">
+      <h4>Anthropic API key</h4>
+      <p>Used to score listings with AI. Stored only in your browser.</p>
+      <input type="password" id="settingsAnthropicKey" placeholder="sk-ant-…"/>
+    </div>
+    <div class="settings-section" style="border-top:0.5px solid var(--border);padding-top:1rem">
+      <h4>RentCast API key</h4>
+      <p>Pulls live Boston rental listings. <a href="https://rentcast.io/api" target="_blank" style="color:var(--blue)">Get a free key →</a></p>
+      <input type="password" id="settingsRentcastKey" placeholder="RentCast key…"/>
+    </div>
+    <button class="save-key-btn" onclick="saveKeysFromSettings()">Save</button>
+    <div class="settings-section" style="border-top:0.5px solid var(--border);padding-top:1rem;margin-top:1rem">
+      <h4>Data</h4>
+      <button onclick="clearAll()" style="padding:7px 14px;border-radius:99px;border:0.5px solid #E24B4A;color:#A32D2D;background:none;font-size:12px;cursor:pointer">Clear all listings</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BACKEND_URL = 'https://bostondeals-backend.onrender.com';
+
+const MEDIANS = {
+  "Allston":{"Studio":1750,"1BR":2300,"2BR":2900,"3BR+":3600},
+  "Back Bay":{"Studio":2400,"1BR":3400,"2BR":4800,"3BR+":7000},
+  "Beacon Hill":{"Studio":2300,"1BR":3200,"2BR":4500,"3BR+":6000},
+  "Brighton":{"Studio":1800,"1BR":2350,"2BR":3000,"3BR+":3700},
+  "Brookline":{"Studio":2100,"1BR":2900,"2BR":3900,"3BR+":5000},
+  "Cambridge":{"Studio":2000,"1BR":2800,"2BR":3800,"3BR+":4800},
+  "Charlestown":{"Studio":2000,"1BR":2800,"2BR":3700,"3BR+":4800},
+  "Dorchester":{"Studio":1600,"1BR":2000,"2BR":2700,"3BR+":3400},
+  "East Boston":{"Studio":1700,"1BR":2300,"2BR":3000,"3BR+":3800},
+  "Fenway":{"Studio":2100,"1BR":2700,"2BR":3500,"3BR+":4500},
+  "Hyde Park":{"Studio":1400,"1BR":1800,"2BR":2400,"3BR+":3000},
+  "Jamaica Plain":{"Studio":1700,"1BR":2200,"2BR":2900,"3BR+":3600},
+  "Malden":{"Studio":1500,"1BR":1900,"2BR":2500,"3BR+":3200},
+  "Medford":{"Studio":1700,"1BR":2200,"2BR":2900,"3BR+":3600},
+  "Midtown":{"Studio":2300,"1BR":3100,"2BR":4200,"3BR+":5800},
+  "Mission Hill":{"Studio":1700,"1BR":2100,"2BR":2800,"3BR+":3500},
+  "North End":{"Studio":2300,"1BR":3100,"2BR":4300,"3BR+":5800},
+  "Quincy":{"Studio":1600,"1BR":2100,"2BR":2700,"3BR+":3400},
+  "Roslindale":{"Studio":1500,"1BR":1900,"2BR":2600,"3BR+":3300},
+  "Roxbury":{"Studio":1500,"1BR":1900,"2BR":2500,"3BR+":3200},
+  "Seaport":{"Studio":2700,"1BR":3600,"2BR":5000,"3BR+":7000},
+  "Somerville":{"Studio":1900,"1BR":2600,"2BR":3400,"3BR+":4200},
+  "South Boston":{"Studio":2000,"1BR":2800,"2BR":3800,"3BR+":5000},
+  "South End":{"Studio":2200,"1BR":3000,"2BR":4200,"3BR+":5500},
+  "Waltham":{"Studio":1700,"1BR":2200,"2BR":2900,"3BR+":3600},
+  "Watertown":{"Studio":1800,"1BR":2400,"2BR":3100,"3BR+":3900},
+  "West End":{"Studio":2200,"1BR":3000,"2BR":4100,"3BR+":5500},
+  "West Roxbury":{"Studio":1500,"1BR":1900,"2BR":2500,"3BR+":3200}
+};
+
+let listings = JSON.parse(localStorage.getItem('bd_listings3') || '[]');
+let activeChip = 'all';
+
+const getAnthropicKey = () => localStorage.getItem('bd_ak') || '';
+const getRentcastKey  = () => localStorage.getItem('bd_rk') || '';
+
+function saveKeys(ak, rk) {
+  if(ak) localStorage.setItem('bd_ak', ak.trim());
+  if(rk) localStorage.setItem('bd_rk', rk.trim());
+  refreshKeyUI();
+}
+function refreshKeyUI() {
+  const hasAll = getAnthropicKey() && getRentcastKey();
+  document.getElementById('keyDot').className = 'key-dot' + (hasAll ? ' ok' : '');
+  document.getElementById('keyBanner').className = 'key-banner' + (hasAll ? ' hidden' : '');
+  document.getElementById('settingsAnthropicKey').value = getAnthropicKey();
+  document.getElementById('settingsRentcastKey').value = getRentcastKey();
+}
+function saveKeysFromBanner() {
+  saveKeys(document.getElementById('bannerAnthropicKey').value, document.getElementById('bannerRentcastKey').value);
+}
+function saveKeysFromSettings() {
+  saveKeys(document.getElementById('settingsAnthropicKey').value, document.getElementById('settingsRentcastKey').value);
+  closeSettings();
+}
+
+function openSettings() { document.getElementById('settingsOverlay').classList.remove('hidden'); }
+function closeSettings() { document.getElementById('settingsOverlay').classList.add('hidden'); }
+document.getElementById('settingsOverlay').addEventListener('click', e => { if(e.target === document.getElementById('settingsOverlay')) closeSettings(); });
+
+function clearAll() {
+  if(!confirm('Remove all listings?')) return;
+  listings = []; persist(); render(); updateStats(); updateFilters(); closeSettings();
+}
+
+function openManual() {
+  document.getElementById('manualOverlay').classList.remove('hidden');
+  document.getElementById('manualBody').innerHTML = `
+    <textarea id="manualInput" placeholder="Paste any listing text — Zillow, Craigslist, Apartments.com, anything."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeManual()">Cancel</button>
+      <button class="btn-go" onclick="analyzeManual()">Analyze with AI ↗</button>
+    </div>`;
+}
+function closeManual() { document.getElementById('manualOverlay').classList.add('hidden'); }
+document.getElementById('manualOverlay').addEventListener('click', e => { if(e.target === document.getElementById('manualOverlay')) closeManual(); });
+
+async function analyzeManual() {
+  const text = document.getElementById('manualInput')?.value.trim();
+  if(!text) return;
+  if(!getAnthropicKey()) return alert('Add your Anthropic API key in Settings first.');
+  document.getElementById('manualBody').innerHTML = '<div class="analyzing"><div class="spinner"></div>Claude is analyzing…</div>';
+  const result = await scoreWithClaude({ formattedAddress: 'Manual listing', rawText: text });
+  if(result) {
+    listings.unshift({ ...result, id: Date.now() + Math.random(), addedAt: new Date().toISOString(), tracked: false, source: 'manual', sourceName: 'Manual' });
+    persist(); updateFilters(); render(); updateStats(); closeManual();
+  } else {
+    document.getElementById('manualBody').innerHTML = `
+      <div style="color:#A32D2D;font-size:13px;padding:1rem;background:var(--coral-bg);border-radius:var(--r);margin-bottom:1rem">Could not analyze. Check your API key and try again.</div>
+      <div class="modal-actions"><button class="btn-cancel" onclick="closeManual()">Close</button></div>`;
+  }
+}
+
+async function fetchAndScore() {
+  if(!getAnthropicKey()) return alert('Add your Anthropic API key in Settings first.');
+  const btn = document.getElementById('fetchBtn');
+  btn.disabled = true;
+  showProgress('Fetching live Boston listings…', 0);
+
+  let rawListings = [];
+  try {
+    const res = await fetch(BACKEND_URL + '/listings');
+    const data = await res.json();
+    rawListings = Array.isArray(data) ? data : (data.listings || data.data || []);
+    logProgress('Got ' + rawListings.length + ' listings from RentCast');
+  } catch(e) {
+    logProgress('Fetch error: ' + e.message);
+    btn.disabled = false;
+    setTimeout(hideProgress, 3000);
+    return;
+  }
+
+  setProgress(40);
+
+  const seen = new Set(listings.map(l => l.address));
+  const fresh = rawListings.filter(l => {
+    const addr = l.formattedAddress || l.address || '';
+    if(seen.has(addr)) return false;
+    seen.add(addr);
+    return true;
+  });
+
+  if(fresh.length === 0) {
+    logProgress('No new listings — all already in your tracker.');
+    btn.disabled = false;
+    setTimeout(hideProgress, 3000);
+    return;
+  }
+
+  logProgress('Scoring ' + fresh.length + ' new listings with Claude…');
+  let scored = 0;
+  for(const raw of fresh) {
+    const result = await scoreWithClaude(raw);
+    if(result) {
+      listings.unshift({ ...result, id: Date.now() + Math.random(), addedAt: new Date().toISOString(), tracked: false, source: 'rentcast', sourceName: 'RentCast' });
+      scored++;
+      persist(); updateFilters(); render(); updateStats();
+    }
+    setProgress(40 + Math.round((scored / fresh.length) * 60));
+    logProgress('Scored ' + scored + ' of ' + fresh.length);
+  }
+
+  hideProgress();
+  btn.disabled = false;
+  checkAlerts();
+}
+
+async function scoreWithClaude(raw) {
+  const context = raw.rawText || [
+    'Address: ' + (raw.formattedAddress || raw.address || 'Unknown'),
+    'Price: $' + (raw.price || raw.rent || 'unknown') + '/mo',
+    'Bedrooms: ' + (raw.bedrooms ?? 'unknown'),
+    'Bathrooms: ' + (raw.bathrooms ?? 'unknown'),
+    'Sqft: ' + (raw.squareFootage ?? 'unknown'),
+    'Type: ' + (raw.propertyType || 'unknown'),
+    'Features: ' + ((raw.features || []).join(', ') || 'none'),
+    'Description: ' + (raw.description || 'none')
+  ].join('\n');
+
+  const prompt = 'You are a Boston rental market expert. Analyze this listing and return ONLY valid JSON (no markdown, no backticks).\n\nLISTING:\n"""\n' + context + '\n"""\n\nBOSTON NEIGHBORHOOD MEDIANS:\n' + JSON.stringify(MEDIANS) + '\n\nReturn this EXACT JSON:\n{\n  "address": "full street address",\n  "neighborhood": "best matching neighborhood from the medians list",\n  "type": "Studio|1BR|2BR|3BR+",\n  "price": <monthly rent as integer or null>,\n  "sqft": <integer or null>,\n  "available": "date string, Now, or TBD",\n  "amenities": ["up to 6 amenities"],\n  "brokerFee": <true|false|null>,\n  "petFriendly": <true|false|null>,\n  "parking": <true|false|null>,\n  "score": <0-100>,\n  "pctBelowMarket": <integer>,\n  "marketRent": <neighborhood median for this unit type>,\n  "dealTags": ["up to 5 short tags"],\n  "aiInsight": "2-3 sentences about this deal.",\n  "listingUrl": null\n}';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': getAnthropicKey(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    if(data.error) { console.error('Claude error:', data.error.message); return null; }
+    let text = data.content?.find(b => b.type === 'text')?.text || '';
+    text = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(text);
+  } catch(e) {
+    console.error('Score error:', e);
+    return null;
+  }
+}
+
+function showProgress(title, pct) {
+  document.getElementById('progressBar').classList.remove('hidden');
+  document.getElementById('progressTitle').textContent = title;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLog').textContent = '';
+}
+function setProgress(pct) { document.getElementById('progressFill').style.width = Math.min(pct, 99) + '%'; }
+function logProgress(msg) {
+  const el = document.getElementById('progressLog');
+  el.textContent += (el.textContent ? '\n' : '') + '› ' + msg;
+  el.scrollTop = el.scrollHeight;
+  document.getElementById('progressSub').textContent = msg;
+}
+function hideProgress() {
+  document.getElementById('progressFill').style.width = '100%';
+  setTimeout(() => document.getElementById('progressBar').classList.add('hidden'), 600);
+}
+
+function sc(s) { return s >= 75 ? 'hot' : s >= 50 ? 'warm' : 'cold'; }
+function ago(iso) {
+  const d = (Date.now() - new Date(iso).getTime()) / 86400000;
+  if(d < 1) return 'Today'; if(d < 2) return '1d ago'; return Math.floor(d) + 'd ago';
+}
+
+function render() {
+  const hood = document.getElementById('hoodFilter').value;
+  const type = document.getElementById('typeFilter').value;
+  const sort = document.getElementById('sortFilter').value;
+  let items = listings.filter(l => {
+    if(hood && l.neighborhood !== hood) return false;
+    if(type && l.type !== type) return false;
+    if(activeChip === 'tracked' && !l.tracked) return false;
+    if(activeChip === 'hot' && l.score < 75) return false;
+    return true;
+  });
+  items.sort((a, b) => {
+    if(sort === 'score') return b.score - a.score;
+    if(sort === 'price_asc') return (a.price || 9999) - (b.price || 9999);
+    if(sort === 'price_desc') return (b.price || 0) - (a.price || 0);
+    return new Date(b.addedAt) - new Date(a.addedAt);
+  });
+  document.getElementById('filterCount').textContent = items.length + ' listing' + (items.length !== 1 ? 's' : '');
+  const el = document.getElementById('dealsList');
+  if(!items.length) {
+    el.innerHTML = '<div class="empty"><h3>' + (listings.length ? 'No listings match your filters' : 'No listings yet') + '</h3><p>' + (listings.length ? 'Try adjusting the filters above.' : 'Click <strong>Fetch live listings</strong> to pull real Boston rentals and score them with AI.') + '</p></div>';
+    return;
+  }
+  el.innerHTML = items.map(l => {
+    const cls = sc(l.score);
+    const saving = l.marketRent && l.price ? l.marketRent - l.price : 0;
+    const tags = (l.dealTags || []).slice(0, 5).map(t => '<span class="tag deal">' + t + '</span>').join('');
+    const extras = [];
+    if(l.brokerFee === false) extras.push('<span class="tag deal">No broker fee</span>');
+    if(l.petFriendly) extras.push('<span class="tag">Pet friendly</span>');
+    if(l.parking) extras.push('<span class="tag">Parking</span>');
+    const addrHtml = l.listingUrl
+      ? '<a href="' + l.listingUrl + '" target="_blank" class="card-addr" style="text-decoration:none;border-bottom:0.5px solid var(--border2)">' + (l.address || 'View listing') + '</a>'
+      : '<span class="card-addr">' + (l.address || 'Unknown') + '</span>';
+    return '<div class="card ' + cls + '"><div class="score-circle ' + cls + '"><div class="score-num">' + l.score + '</div><div class="score-lbl">SCORE</div></div><div class="card-body"><div class="card-top">' + addrHtml + '<span class="card-hood">' + (l.neighborhood || 'Boston') + '</span></div><div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap"><span class="src-pill">' + (l.sourceName || 'Other') + '</span><span class="card-meta" style="margin:0">' + (l.type || '') + (l.sqft ? ' · ' + l.sqft + ' sqft' : '') + ' · Available ' + (l.available || 'TBD') + '</span></div><div class="price-row"><span class="price">' + (l.price ? '$' + l.price.toLocaleString() + '/mo' : 'Price TBD') + '</span>' + (l.marketRent ? '<span class="price-was">median $' + l.marketRent.toLocaleString() + '</span>' : '') + (saving > 0 ? '<span class="price-save">Save $' + saving.toLocaleString() + '/mo</span>' : '') + (l.pctBelowMarket > 0 ? '<span class="tag deal">' + l.pctBelowMarket + '% below market</span>' : l.pctBelowMarket < 0 ? '<span class="tag warn">' + Math.abs(l.pctBelowMarket) + '% above market</span>' : '') + '</div><div class="tags">' + tags + extras.join('') + '</div>' + (l.aiInsight ? '<div class="card-ai">✦ ' + l.aiInsight + '</div>' : '') + '</div><div class="card-right"><button class="track-btn ' + (l.tracked ? 'on' : '') + '" onclick="toggleTrack(' + l.id + ')">' + (l.tracked ? '★ Saved' : '☆ Save') + '</button><span class="days-ago">' + ago(l.addedAt) + '</span><button class="del-btn" onclick="del(' + l.id + ')" title="Remove">✕</button></div></div>';
+  }).join('');
+}
+
+function toggleTrack(id) {
+  const l = listings.find(x => x.id === id);
+  if(l) { l.tracked = !l.tracked; persist(); render(); updateStats(); }
+}
+function del(id) { listings = listings.filter(x => x.id !== id); persist(); render(); updateStats(); updateFilters(); }
+function setChip(c) {
+  activeChip = c;
+  ['all','tracked','hot'].forEach(k => {
+    const el = document.getElementById('chip' + k[0].toUpperCase() + k.slice(1));
+    if(el) el.classList.toggle('on', k === c);
+  });
+  render();
+}
+
+function updateStats() {
+  const n = listings.length;
+  const fetched = listings.filter(l => new Date() - new Date(l.addedAt) < 86400000).length;
+  document.getElementById('sTotal').textContent = n;
+  document.getElementById('sFetched').textContent = fetched + ' fetched today';
+  if(!n) { ['sScore','sBest','sAvgOff'].forEach(id => document.getElementById(id).textContent = '—'); return; }
+  document.getElementById('sScore').textContent = Math.round(listings.reduce((s, l) => s + l.score, 0) / n);
+  const best = Math.max(...listings.map(l => (l.marketRent || 0) - (l.price || 0)));
+  document.getElementById('sBest').textContent = best > 0 ? '$' + best.toLocaleString() + '/mo' : '—';
+  const pcts = listings.filter(l => l.pctBelowMarket != null).map(l => l.pctBelowMarket);
+  if(pcts.length) {
+    const avg = Math.round(pcts.reduce((s, p) => s + p, 0) / pcts.length);
+    document.getElementById('sAvgOff').textContent = (avg >= 0 ? '+' : '') + avg + '%';
+    document.getElementById('sAvgSub').textContent = avg >= 0 ? 'below market avg' : 'above market avg';
+  }
+  const badge = document.getElementById('newBadge');
+  const today = listings.filter(l => new Date() - new Date(l.addedAt) < 86400000).length;
+  badge.style.display = today ? '' : 'none';
+  badge.textContent = today + ' new today';
+}
+
+function updateFilters() {
+  const hoods = [...new Set(listings.map(l => l.neighborhood).filter(Boolean))].sort();
+  const hSel = document.getElementById('hoodFilter');
+  const hCur = hSel.value;
+  hSel.innerHTML = '<option value="">All neighborhoods</option>' + hoods.map(h => '<option' + (h === hCur ? ' selected' : '') + '>' + h + '</option>').join('');
+}
+
+function checkAlerts() {
+  const hits = listings.filter(l => l.priceAlert && l.price && l.price <= l.priceAlert);
+  const bar = document.getElementById('alertBar');
+  if(hits.length) {
+    bar.classList.remove('hidden');
+    document.getElementById('alertText').textContent = '🔔 ' + hits.length + ' listing' + (hits.length > 1 ? 's are' : ' is') + ' at or below your alert price';
+  } else bar.classList.add('hidden');
+}
+
+function persist() { localStorage.setItem('bd_listings3', JSON.stringify(listings)); }
+
+refreshKeyUI();
+updateFilters();
+updateStats();
+render();
+checkAlerts();
+</script>
+</body>
+</html>
