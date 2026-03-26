@@ -440,7 +440,8 @@ function showLinkMenu(e, addr) {
   setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 10);
 }
 
-
+// ✅ FIX: restored missing function declaration
+function showProgress(title, pct) {
   document.getElementById('progressBar').classList.remove('hidden');
   document.getElementById('progressTitle').textContent = title;
   document.getElementById('progressFill').style.width = pct + '%';
@@ -496,7 +497,6 @@ function render() {
     if(l.petFriendly) extras.push('<span class="tag">Pet friendly</span>');
     if(l.parking) extras.push('<span class="tag">Parking</span>');
     const addr = l.address || 'Unknown';
-    const addrEnc = encodeURIComponent(addr);
     const addrHtml = '<span class="card-addr addr-link" onclick="showLinkMenu(event,\'' + addr.replace(/'/g,"&#39;") + '\')" style="cursor:pointer;border-bottom:0.5px dashed var(--border2)">' + addr + ' <span style="font-size:10px;opacity:.5">↗</span></span>';
     return '<div class="card ' + cls + '"><div class="score-circle ' + cls + '"><div class="score-num">' + l.score + '</div><div class="score-lbl">SCORE</div></div><div class="card-body"><div class="card-top">' + addrHtml + '<span class="card-hood">' + (l.neighborhood || 'Boston') + '</span></div><div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap"><span class="src-pill">' + (l.sourceName || 'Other') + '</span><span class="card-meta" style="margin:0">' + (l.type || '') + (l.sqft ? ' · ' + l.sqft + ' sqft' : '') + ' · Available ' + (l.available || 'TBD') + '</span></div><div class="price-row"><span class="price">' + (l.price ? '$' + l.price.toLocaleString() + '/mo' : 'Price TBD') + '</span>' + (l.marketRent ? '<span class="price-was">median $' + l.marketRent.toLocaleString() + '</span>' : '') + (saving > 0 ? '<span class="price-save">Save $' + saving.toLocaleString() + '/mo</span>' : '') + (l.pctBelowMarket > 0 ? '<span class="tag deal">' + l.pctBelowMarket + '% below market</span>' : l.pctBelowMarket < 0 ? '<span class="tag warn">' + Math.abs(l.pctBelowMarket) + '% above market</span>' : '') + '</div><div class="tags">' + tags + extras.join('') + '</div>' + (l.aiInsight ? '<div class="card-ai">✦ ' + l.aiInsight + '</div>' : '') + '</div><div class="card-right"><button class="track-btn ' + (l.tracked ? 'on' : '') + '" onclick="toggleTrack(' + l.id + ')">' + (l.tracked ? '★ Saved' : '☆ Save') + '</button><span class="days-ago">' + ago(l.addedAt) + '</span><button class="del-btn" onclick="del(' + l.id + ')" title="Remove">✕</button></div></div>';
   }).join('');
